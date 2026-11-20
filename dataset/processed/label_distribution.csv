@@ -1,0 +1,6 @@
+class,count,percentage
+cyberattack_ocpp16_doc_idtag,863,20.0
+cyberattack_ocpp16_unauthorized_access,863,20.0
+cyberattack_ocpp16_dos_flooding_heartbeat,863,20.0
+cyberattack_ocpp16_fdi_chargingprofile,863,20.0
+normal,863,20.0

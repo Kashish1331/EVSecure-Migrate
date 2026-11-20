@@ -1,0 +1,5 @@
+algorithm,total_messages,hash_passed,hash_failed,hash_success_rate,tampering_tested,tampering_detected,tampering_undetected,tampering_detection_rate
+md5,4315,4315,0,100.0,4315,4315,0,100.0
+sha1,4315,4315,0,100.0,4315,4315,0,100.0
+sha256,4315,4315,0,100.0,4315,4315,0,100.0
+sha3_256,4315,4315,0,100.0,4315,4315,0,100.0

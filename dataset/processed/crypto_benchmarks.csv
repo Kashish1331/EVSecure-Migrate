@@ -1,0 +1,5 @@
+algorithm,messages_tested,iterations_per_message,total_operations,total_time_seconds,average_time_ms,operations_per_second
+md5,100,100,10000,0.03759,0.003759,266024.66
+sha1,100,100,10000,0.031746,0.003175,314997.42
+sha256,100,100,10000,0.033491,0.003349,298583.96
+sha3_256,100,100,10000,0.039294,0.003929,254490.16

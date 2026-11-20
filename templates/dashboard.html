@@ -1,0 +1,1053 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVSecure-Migrate | Security Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">
+                <i data-lucide="zap"></i>
+            </div>
+
+            <div>
+                <h2>EVSecure</h2>
+                <span>CRYPTO MIGRATION</span>
+            </div>
+        </div>
+
+        <div class="sidebar-label">MAIN MENU</div>
+
+        <nav class="navigation">
+
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                Dashboard
+            </a>
+
+            <a href="#chargers" class="nav-link" data-section="chargers">
+                <i data-lucide="battery-charging"></i>
+                EV Chargers
+            </a>
+
+            <a href="#messages" class="nav-link" data-section="messages">
+                <i data-lucide="messages-square"></i>
+                Messages
+            </a>
+
+            <a href="#security" class="nav-link" data-section="security">
+                <i data-lucide="shield-check"></i>
+                Security Modes
+            </a>
+
+            <a href="#migration" class="nav-link" data-section="migration">
+                <i data-lucide="refresh-cw"></i>
+                MD5 Migration
+            </a>
+
+            <a href="#crypto" class="nav-link" data-section="crypto">
+                <i data-lucide="fingerprint"></i>
+                Hash Analyzer
+            </a>
+
+            <a href="#attacks" class="nav-link" data-section="attacks">
+                <i data-lucide="bug"></i>
+                Attack Simulation
+            </a>
+
+            <a href="#dataset" class="nav-link" data-section="dataset">
+                <i data-lucide="database"></i>
+                Dataset Analysis
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="system-status">
+                <span class="status-dot"></span>
+                System Interface
+                <span class="online-text">READY</span>
+            </div>
+
+            <p>EVSecure-Migrate v1.0</p>
+            <p>Cybersecurity Project</p>
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div>
+                <div class="breadcrumb">EVSecure / <span id="breadcrumb-name">Dashboard</span></div>
+                <h1 id="page-title">Security Dashboard</h1>
+            </div>
+
+            <div class="topbar-right">
+                <div class="connection-status">
+                    <span class="status-dot"></span>
+                    Local Server
+                </div>
+
+                <div class="profile-icon">
+                    <i data-lucide="shield"></i>
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- DASHBOARD SECTION -->
+
+        <section class="page-section active" id="dashboard">
+
+            <div class="welcome-banner">
+
+                <div>
+                    <span class="eyebrow">EV CHARGING SECURITY PLATFORM</span>
+
+                    <h2>MD5 to SHA3-256 Migration</h2>
+
+                    <p>
+                        Monitor simulated EV charger communication,
+                        cryptographic integrity and security events.
+                    </p>
+                </div>
+
+                <div class="banner-icon">
+                    <i data-lucide="shield-check"></i>
+                </div>
+
+            </div>
+
+
+            <div class="section-heading">
+                <div>
+                    <h2>System Overview</h2>
+                    <p>Live information from the application database.</p>
+                </div>
+
+                <button class="secondary-btn" onclick="refreshDashboard()">
+                    <i data-lucide="refresh-cw"></i>
+                    Refresh
+                </button>
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Total Chargers</span>
+                        <i data-lucide="battery-charging"></i>
+                    </div>
+                    <h2 id="total-chargers">0</h2>
+                    <p>Registered charging stations</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Total Messages</span>
+                        <i data-lucide="messages-square"></i>
+                    </div>
+                    <h2 id="total-messages">0</h2>
+                    <p>Stored communication records</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Security Events</span>
+                        <i data-lucide="shield-alert"></i>
+                    </div>
+                    <h2 id="total-events">0</h2>
+                    <p>Recorded security events</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Transactions</span>
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <h2 id="total-transactions">0</h2>
+                    <p>Charging transactions</p>
+                </div>
+
+            </div>
+
+
+            <div class="content-grid">
+
+                <div class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Security Architecture</h3>
+                            <p>Cryptographic migration overview</p>
+                        </div>
+                        <i data-lucide="workflow"></i>
+                    </div>
+
+                    <div class="architecture">
+
+                        <div class="architecture-node legacy-node">
+                            <span>LEGACY</span>
+                            <h3>MD5</h3>
+                            <p>128-bit digest</p>
+                        </div>
+
+                        <div class="architecture-arrow">
+                            <i data-lucide="arrow-right"></i>
+                        </div>
+
+                        <div class="architecture-node migration-node">
+                            <span>TRANSITION</span>
+                            <h3>DUAL HASH</h3>
+                            <p>MD5 + SHA3-256</p>
+                        </div>
+
+                        <div class="architecture-arrow">
+                            <i data-lucide="arrow-right"></i>
+                        </div>
+
+                        <div class="architecture-node secure-node">
+                            <span>TARGET</span>
+                            <h3>SHA3-256</h3>
+                            <p>256-bit digest</p>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Security Modes</h3>
+                            <p>Available verification configurations</p>
+                        </div>
+                        <i data-lucide="lock"></i>
+                    </div>
+
+                    <div class="mode-item">
+                        <span class="mode-indicator legacy"></span>
+                        <div>
+                            <strong>LEGACY_MD5</strong>
+                            <p>Legacy integrity verification</p>
+                        </div>
+                    </div>
+
+                    <div class="mode-item">
+                        <span class="mode-indicator migration"></span>
+                        <div>
+                            <strong>MIGRATION</strong>
+                            <p>Dual-hash verification</p>
+                        </div>
+                    </div>
+
+                    <div class="mode-item">
+                        <span class="mode-indicator secure"></span>
+                        <div>
+                            <strong>SECURE_SHA3</strong>
+                            <p>SHA3-256 verification</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <h3>Recent Security Events</h3>
+                        <p>Latest recorded events</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Charger ID</th>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Severity</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="dashboard-events">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    Loading security events...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- CHARGERS SECTION -->
+
+        <section class="page-section" id="chargers">
+
+            <div class="section-heading">
+                <div>
+                    <h2>EV Charger Management</h2>
+                    <p>Register and monitor simulated charging stations.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Register New Charger</h3>
+                        <p>Add a charging station to the system.</p>
+                    </div>
+                    <i data-lucide="plus-circle"></i>
+                </div>
+
+                <form id="charger-form" class="form-grid">
+
+                    <div class="form-group">
+                        <label>Charger ID</label>
+                        <input type="text"
+                               id="charger-id"
+                               placeholder="EV-001"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text"
+                               id="charger-location"
+                               placeholder="Delhi"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Connector Count</label>
+                        <input type="number"
+                               id="connector-count"
+                               min="1"
+                               value="1"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Protocol</label>
+                        <select id="charger-protocol">
+                            <option value="OCPP 1.6">OCPP 1.6</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">
+                            <i data-lucide="plus"></i>
+                            Register Charger
+                        </button>
+                    </div>
+
+                </form>
+
+                <div id="charger-result" class="result-box hidden"></div>
+
+            </div>
+
+
+            <div class="section-heading">
+                <div>
+                    <h2>Registered Chargers</h2>
+                    <p>Charging station information.</p>
+                </div>
+
+                <button class="secondary-btn" onclick="loadChargers()">
+                    <i data-lucide="refresh-cw"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <div id="charger-list" class="charger-grid">
+                <div class="empty-state">Loading chargers...</div>
+            </div>
+
+        </section>
+
+
+        <!-- MESSAGES SECTION -->
+
+        <section class="page-section" id="messages">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Message Monitoring</h2>
+                    <p>Inspect stored charger communication messages.</p>
+                </div>
+
+                <button class="secondary-btn" onclick="loadMessages()">
+                    <i data-lucide="refresh-cw"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Message History</h3>
+                        <p>Messages received by the simulated CSMS.</p>
+                    </div>
+                    <i data-lucide="messages-square"></i>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Charger</th>
+                                <th>Message Type</th>
+                                <th>Verification</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="message-table">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    Loading messages...
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SECURITY MODES SECTION -->
+
+        <section class="page-section" id="security">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Security Configuration</h2>
+                    <p>Change the cryptographic verification mode of a charger.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+
+                <form id="security-form" class="form-grid">
+
+                    <div class="form-group">
+                        <label>Charger ID</label>
+                        <input type="text"
+                               id="security-charger-id"
+                               placeholder="EV-001"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Security Mode</label>
+
+                        <select id="security-mode" required>
+                            <option value="LEGACY_MD5">LEGACY_MD5</option>
+                            <option value="MIGRATION">MIGRATION</option>
+                            <option value="SECURE_SHA3">SECURE_SHA3</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">
+                            <i data-lucide="shield-check"></i>
+                            Update Security Mode
+                        </button>
+                    </div>
+
+                </form>
+
+                <div id="security-result" class="result-box hidden"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MIGRATION SECTION -->
+
+        <section class="page-section" id="migration">
+
+            <div class="section-heading">
+                <div>
+                    <h2>MD5 to SHA3-256 Migration</h2>
+                    <p>Analyze dual-hash migration and message integrity.</p>
+                </div>
+            </div>
+
+
+            <div class="migration-overview">
+
+                <div class="migration-card">
+                    <span>LEGACY ALGORITHM</span>
+                    <h2>MD5</h2>
+                    <p>128-bit digest</p>
+                    <span class="status-text danger">DEPRECATED</span>
+                </div>
+
+                <div class="migration-card">
+                    <span>MIGRATION STRATEGY</span>
+                    <h2>DUAL HASH</h2>
+                    <p>MD5 + SHA3-256</p>
+                    <span class="status-text warning">TRANSITION</span>
+                </div>
+
+                <div class="migration-card">
+                    <span>TARGET ALGORITHM</span>
+                    <h2>SHA3-256</h2>
+                    <p>256-bit digest</p>
+                    <span class="status-text success">RECOMMENDED</span>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Migration Analysis</h3>
+                        <p>Generate and compare cryptographic digests.</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Message (JSON or text)</label>
+
+                    <textarea id="migration-message"
+                              rows="5"
+                              placeholder='{"charger_id":"EV-001","message_type":"Heartbeat","status":"Available"}'></textarea>
+                </div>
+
+                <button class="primary-btn"
+                        onclick="analyzeMigration()">
+                    <i data-lucide="play"></i>
+                    Run Migration Analysis
+                </button>
+
+                <div id="migration-result" class="analysis-result"></div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>SHA3 Integrity Verification</h3>
+                        <p>Verify a message using trusted stored digests.</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="verification-message"
+                              rows="4"
+                              placeholder="Enter the original message"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Trusted Hashes (JSON)</label>
+                    <textarea id="trusted-hashes"
+                              rows="5"
+                              placeholder='{"md5":"...","sha3_256":"..."}'></textarea>
+                </div>
+
+                <button class="primary-btn"
+                        onclick="verifySHA3Integrity()">
+                    <i data-lucide="shield-check"></i>
+                    Verify Integrity
+                </button>
+
+                <div id="verification-result" class="analysis-result"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CRYPTO ANALYZER SECTION -->
+
+        <section class="page-section" id="crypto">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Cryptographic Hash Analyzer</h2>
+                    <p>Generate and compare multiple hash algorithms.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+
+                <div class="form-group">
+                    <label>Enter Message</label>
+
+                    <textarea id="hash-input"
+                              rows="5"
+                              placeholder="Enter a message to generate cryptographic hashes..."></textarea>
+                </div>
+
+                <button class="primary-btn" onclick="analyzeHash()">
+                    <i data-lucide="fingerprint"></i>
+                    Generate Hashes
+                </button>
+
+                <div id="hash-results" class="hash-results"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ATTACK SIMULATION SECTION -->
+
+        <section class="page-section" id="attacks">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Security Attack Simulation</h2>
+                    <p>Run controlled security tests against simulated messages.</p>
+                </div>
+            </div>
+
+
+            <div class="attack-grid">
+
+                <div class="attack-card">
+                    <div class="attack-icon danger-icon">
+                        <i data-lucide="user-x"></i>
+                    </div>
+
+                    <h3>Unknown Charger</h3>
+
+                    <p>
+                        Test whether an unregistered charger
+                        is rejected by the system.
+                    </p>
+
+                    <button class="secondary-btn"
+                            onclick="simulateUnknownCharger()">
+                        Run Test
+                    </button>
+                </div>
+
+
+                <div class="attack-card">
+                    <div class="attack-icon warning-icon">
+                        <i data-lucide="key-round"></i>
+                    </div>
+
+                    <h3>Invalid Credential</h3>
+
+                    <p>
+                        Test authentication using an invalid
+                        charger credential.
+                    </p>
+
+                    <button class="secondary-btn"
+                            onclick="simulateInvalidCredential()">
+                        Run Test
+                    </button>
+                </div>
+
+
+                <div class="attack-card">
+                    <div class="attack-icon danger-icon">
+                        <i data-lucide="copy"></i>
+                    </div>
+
+                    <h3>Replay Attack</h3>
+
+                    <p>
+                        Submit a previously received message
+                        to test duplicate detection.
+                    </p>
+
+                    <div class="form-group">
+                        <label>Charger ID</label>
+                        <input type="text"
+                               id="replay-charger-id"
+                               placeholder="EV-001">
+                    </div>
+
+                    <button class="secondary-btn"
+                            onclick="simulateReplayAttack()">
+                        Run Test
+                    </button>
+                </div>
+
+
+                <div class="attack-card">
+                    <div class="attack-icon danger-icon">
+                        <i data-lucide="file-warning"></i>
+                    </div>
+
+                    <h3>MD5 Collision Analysis</h3>
+
+                    <p>
+                        Compare hash collision resistance
+                        and theoretical collision estimates.
+                    </p>
+
+                    <button class="secondary-btn"
+                            onclick="loadCollisionAnalysis()">
+                        Run Analysis
+                    </button>
+                </div>
+
+
+                <div class="attack-card">
+                    <div class="attack-icon success-icon">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+
+                    <h3>SHA3 Verification</h3>
+
+                    <p>
+                        Verify a message against its
+                        trusted SHA3-256 digest.
+                    </p>
+
+                    <button class="secondary-btn"
+                            onclick="verifySHA3Integrity()">
+                        Run Verification
+                    </button>
+                </div>
+
+
+                <div class="attack-card">
+                    <div class="attack-icon warning-icon">
+                        <i data-lucide="file-pen-line"></i>
+                    </div>
+
+                    <h3>Message Tampering</h3>
+
+                    <p>
+                        Modify message content and check
+                        whether the original digest detects it.
+                    </p>
+
+                    <button class="secondary-btn"
+                            onclick="simulateTampering()">
+                        Run Test
+                    </button>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Attack Test Results</h3>
+                        <p>Results returned by the backend.</p>
+                    </div>
+                </div>
+
+                <div id="attack-results" class="analysis-result">
+                    <p class="empty-state">
+                        Run a security test to view its results.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Collision Analysis</h3>
+                        <p>Theoretical comparison of hash algorithms.</p>
+                    </div>
+                </div>
+
+                <div id="collision-results" class="analysis-result">
+                    <p class="empty-state">
+                        Click Run Analysis to load collision information.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- DATASET SECTION -->
+
+        <section class="page-section" id="dataset">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Dataset Analysis</h2>
+                    <p>Cryptographic evaluation using the OCPP 1.6 dataset.</p>
+                </div>
+
+                <button class="primary-btn" id="run-dataset-btn"
+                        onclick="runDatasetEvaluation()">
+                    <i data-lucide="play"></i>
+                    Run Dataset Pipeline
+                </button>
+            </div>
+
+
+            <div class="dataset-info">
+
+                <div class="dataset-info-card">
+                    <i data-lucide="database"></i>
+                    <div>
+                        <strong>Dataset</strong>
+                        <p>Federated OCPP 1.6 Intrusion Detection</p>
+                    </div>
+                </div>
+
+                <div class="dataset-info-card">
+                    <i data-lucide="layers"></i>
+                    <div>
+                        <strong>Classes</strong>
+                        <p>5 attack and normal categories</p>
+                    </div>
+                </div>
+
+                <div class="dataset-info-card">
+                    <i data-lucide="fingerprint"></i>
+                    <div>
+                        <strong>Algorithms</strong>
+                        <p>MD5, SHA-1, SHA-256, SHA3-256</p>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Messages Evaluated</span>
+                        <i data-lucide="messages-square"></i>
+                    </div>
+                    <h2 id="dataset-total-messages">0</h2>
+                    <p>Synthetic dataset-derived messages</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Hash Consistency</span>
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <h2 id="dataset-consistency">--</h2>
+                    <p>Digest reproduction results</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Tampering Detection</span>
+                        <i data-lucide="shield-alert"></i>
+                    </div>
+                    <h2 id="dataset-tampering">--</h2>
+                    <p>Controlled modification tests</p>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Hash Consistency Results</h3>
+                        <p>Stored digest versus recalculated digest.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Total Messages</th>
+                                <th>Passed</th>
+                                <th>Failed</th>
+                                <th>Success Rate</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="consistency-table">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    Run dataset evaluation to see results.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Controlled Tampering Results</h3>
+                        <p>Detection of modified message contents.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Tested</th>
+                                <th>Detected</th>
+                                <th>Undetected</th>
+                                <th>Detection Rate</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tampering-table">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    Run dataset evaluation to see results.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Hash Performance Benchmark</h3>
+                        <p>Average hashing execution time.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Messages</th>
+                                <th>Iterations</th>
+                                <th>Average Time (ms)</th>
+                                <th>Operations / Second</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="benchmark-table">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    Run dataset evaluation to see results.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <h3>Dataset Methodology</h3>
+                        <p>Evaluation approach and limitations.</p>
+                    </div>
+                </div>
+
+                <div id="dataset-methodology">
+                    <p class="empty-state">
+                        Evaluation methodology will appear here.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <footer class="main-footer">
+            <span>EVSecure-Migrate</span>
+            <span>MD5 to SHA3-256 Cryptographic Migration</span>
+            <span>Academic Cybersecurity Project</span>
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- NOTIFICATION CONTAINER -->
+
+<div id="notification-container"></div>
+
+
+<!-- JAVASCRIPT -->
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+<script>
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+</script>
+
+</body>
+</html>

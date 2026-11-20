@@ -1,0 +1,88 @@
+{
+    "total_messages": 4315,
+    "hash_consistency": {
+        "md5": {
+            "passed": 4315,
+            "total": 4315,
+            "percentage": 100.0
+        },
+        "sha1": {
+            "passed": 4315,
+            "total": 4315,
+            "percentage": 100.0
+        },
+        "sha256": {
+            "passed": 4315,
+            "total": 4315,
+            "percentage": 100.0
+        },
+        "sha3_256": {
+            "passed": 4315,
+            "total": 4315,
+            "percentage": 100.0
+        }
+    },
+    "tampering": {
+        "total_tests": 17260,
+        "detected": 17260,
+        "not_detected": 0,
+        "detection_rate_percent": 100.0,
+        "algorithm_results": {
+            "md5": {
+                "detected": 4315,
+                "total": 4315
+            },
+            "sha1": {
+                "detected": 4315,
+                "total": 4315
+            },
+            "sha256": {
+                "detected": 4315,
+                "total": 4315
+            },
+            "sha3_256": {
+                "detected": 4315,
+                "total": 4315
+            }
+        },
+        "description": "Controlled payload modification checked against original stored digests. This is not an actual collision attack."
+    },
+    "benchmarks": {
+        "md5": {
+            "sample_messages": 100,
+            "iterations_per_message": 1000,
+            "total_hash_operations": 100000,
+            "total_time_seconds": 0.110469,
+            "average_time_microseconds": 1.1047
+        },
+        "sha1": {
+            "sample_messages": 100,
+            "iterations_per_message": 1000,
+            "total_hash_operations": 100000,
+            "total_time_seconds": 0.048328,
+            "average_time_microseconds": 0.4833
+        },
+        "sha256": {
+            "sample_messages": 100,
+            "iterations_per_message": 1000,
+            "total_hash_operations": 100000,
+            "total_time_seconds": 0.047924,
+            "average_time_microseconds": 0.4792
+        },
+        "sha3_256": {
+            "sample_messages": 100,
+            "iterations_per_message": 1000,
+            "total_hash_operations": 100000,
+            "total_time_seconds": 0.096999,
+            "average_time_microseconds": 0.97
+        }
+    },
+    "methodology": {
+        "dataset": "Federated OCPP 1.6 APP Layer Dataset",
+        "message_type": "Dataset-derived synthetic test payloads",
+        "benchmark_sample_size": 100,
+        "benchmark_iterations_per_message": 1000,
+        "tampering_method": "Controlled payload modification followed by verification against the original stored digest",
+        "collision_attack_performed": false
+    }
+}

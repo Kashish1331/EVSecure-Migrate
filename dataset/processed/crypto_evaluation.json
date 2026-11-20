@@ -1,0 +1,114 @@
+{
+    "total_messages": 4315,
+    "algorithms": [
+        "md5",
+        "sha1",
+        "sha256",
+        "sha3_256"
+    ],
+    "methodology": {
+        "hash_consistency": "Recalculate each stored digest and compare it with the original digest.",
+        "tampering": "Modify a message field and verify it against the original stored digest.",
+        "benchmark": "Measure repeated hash calculations on a fixed sample of messages.",
+        "limitations": [
+            "Synthetic messages are derived from dataset flow features.",
+            "Tampering tests are not actual collision attacks.",
+            "Benchmark results depend on the machine and environment.",
+            "Hashing does not classify dataset attack labels."
+        ]
+    },
+    "hash_consistency": {
+        "md5": {
+            "total_messages": 4315,
+            "passed": 4315,
+            "failed": 0,
+            "success_rate": 100.0
+        },
+        "sha1": {
+            "total_messages": 4315,
+            "passed": 4315,
+            "failed": 0,
+            "success_rate": 100.0
+        },
+        "sha256": {
+            "total_messages": 4315,
+            "passed": 4315,
+            "failed": 0,
+            "success_rate": 100.0
+        },
+        "sha3_256": {
+            "total_messages": 4315,
+            "passed": 4315,
+            "failed": 0,
+            "success_rate": 100.0
+        }
+    },
+    "tampering": {
+        "md5": {
+            "tested": 4315,
+            "detected": 4315,
+            "undetected": 0,
+            "skipped": 0,
+            "detection_rate": 100.0
+        },
+        "sha1": {
+            "tested": 4315,
+            "detected": 4315,
+            "undetected": 0,
+            "skipped": 0,
+            "detection_rate": 100.0
+        },
+        "sha256": {
+            "tested": 4315,
+            "detected": 4315,
+            "undetected": 0,
+            "skipped": 0,
+            "detection_rate": 100.0
+        },
+        "sha3_256": {
+            "tested": 4315,
+            "detected": 4315,
+            "undetected": 0,
+            "skipped": 0,
+            "detection_rate": 100.0
+        }
+    },
+    "benchmarks": [
+        {
+            "algorithm": "md5",
+            "messages_tested": 100,
+            "iterations_per_message": 100,
+            "total_operations": 10000,
+            "total_time_seconds": 0.03759,
+            "average_time_ms": 0.003759,
+            "operations_per_second": 266024.66
+        },
+        {
+            "algorithm": "sha1",
+            "messages_tested": 100,
+            "iterations_per_message": 100,
+            "total_operations": 10000,
+            "total_time_seconds": 0.031746,
+            "average_time_ms": 0.003175,
+            "operations_per_second": 314997.42
+        },
+        {
+            "algorithm": "sha256",
+            "messages_tested": 100,
+            "iterations_per_message": 100,
+            "total_operations": 10000,
+            "total_time_seconds": 0.033491,
+            "average_time_ms": 0.003349,
+            "operations_per_second": 298583.96
+        },
+        {
+            "algorithm": "sha3_256",
+            "messages_tested": 100,
+            "iterations_per_message": 100,
+            "total_operations": 10000,
+            "total_time_seconds": 0.039294,
+            "average_time_ms": 0.003929,
+            "operations_per_second": 254490.16
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+Algorithm,Sample Messages,Iterations Per Message,Total Hash Operations,Total Time Seconds,Average Time Microseconds
+md5,100,1000,100000,0.110469,1.1047
+sha1,100,1000,100000,0.048328,0.4833
+sha256,100,1000,100000,0.047924,0.4792
+sha3_256,100,1000,100000,0.096999,0.97
