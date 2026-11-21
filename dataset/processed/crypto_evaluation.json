@@ -79,36 +79,36 @@
             "messages_tested": 100,
             "iterations_per_message": 100,
             "total_operations": 10000,
-            "total_time_seconds": 0.03759,
-            "average_time_ms": 0.003759,
-            "operations_per_second": 266024.66
+            "total_time_seconds": 0.058129,
+            "average_time_ms": 0.005813,
+            "operations_per_second": 172031.67
         },
         {
             "algorithm": "sha1",
             "messages_tested": 100,
             "iterations_per_message": 100,
             "total_operations": 10000,
-            "total_time_seconds": 0.031746,
-            "average_time_ms": 0.003175,
-            "operations_per_second": 314997.42
+            "total_time_seconds": 0.050764,
+            "average_time_ms": 0.005076,
+            "operations_per_second": 196990.31
         },
         {
             "algorithm": "sha256",
             "messages_tested": 100,
             "iterations_per_message": 100,
             "total_operations": 10000,
-            "total_time_seconds": 0.033491,
-            "average_time_ms": 0.003349,
-            "operations_per_second": 298583.96
+            "total_time_seconds": 0.050302,
+            "average_time_ms": 0.00503,
+            "operations_per_second": 198799.25
         },
         {
             "algorithm": "sha3_256",
             "messages_tested": 100,
             "iterations_per_message": 100,
             "total_operations": 10000,
-            "total_time_seconds": 0.039294,
-            "average_time_ms": 0.003929,
-            "operations_per_second": 254490.16
+            "total_time_seconds": 0.056024,
+            "average_time_ms": 0.005602,
+            "operations_per_second": 178493.74
         }
     ]
 }

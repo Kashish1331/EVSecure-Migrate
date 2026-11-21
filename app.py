@@ -1097,7 +1097,7 @@ def collision_file_comparison():
 def dataset_evaluation():
 
     evaluation_file = (
-        PROCESSED_DIR / "cryptographic_evaluation.json"
+        PROCESSED_DIR / "crypto_evaluation.json"
     )
 
     labels_file = (

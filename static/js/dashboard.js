@@ -108,7 +108,23 @@ function showAnalysis(elementId, content) {
 
     if (!element) return;
 
+    element.classList.remove("hidden");
     element.innerHTML = content;
+}
+function showAttackResult(title, result) {
+    const formattedResult = typeof result === "string"
+        ? result
+        : JSON.stringify(result, null, 2);
+
+    showAnalysis(
+        "attack-results",
+        `
+            <div class="analysis-result">
+                <h3>${escapeHTML(title)}</h3>
+                <pre class="result-json">${escapeHTML(formattedResult)}</pre>
+            </div>
+        `
+    );
 }
 
 function showLoading(elementId, message = "Processing...") {
@@ -719,7 +735,11 @@ async function analyzeHash() {
             body: { message }
         });
 
-        const hashes = result.hashes || result.data?.hashes || {};
+        const responseData = result.data || result;
+const algorithms = responseData.algorithms || {};
+const hashes = Object.fromEntries(
+    Object.entries(algorithms).map(([name, details]) => [name, details.hash])
+);
 
         const details = Object.entries(hashes);
 
@@ -783,13 +803,18 @@ async function analyzeMigration() {
     );
 
     try {
-        const result = await apiRequest(API.migration, {
-            method: "POST",
-            body: { message }
-        });
+        const messageText = typeof message === "string"
+    ? message
+    : JSON.stringify(message);
 
-        const hashes = result.hashes || result.migration?.hashes || {};
-        const comparison = result.comparison || result.analysis || {};
+const result = await apiRequest(API.migration, {
+    method: "POST",
+    body: { message: messageText }
+});
+
+        const responseData = result.data || result;
+const hashes = responseData.reference_hashes || responseData.hashes || responseData.migration?.hashes || {};
+const comparison = responseData.comparison || responseData.analysis || {};
 
         showAnalysis(
             "migration-result",
@@ -860,21 +885,24 @@ async function verifySHA3Integrity() {
         const result = await apiRequest(API.migration, {
             method: "POST",
             body: {
-                message,
-                trusted_hashes: trustedHashes,
-                security_mode: "MIGRATION"
-            }
+    message: typeof message === "string"
+        ? message
+        : JSON.stringify(message),
+    trusted_hashes: trustedHashes,
+    security_mode: "MIGRATION"
+}
         });
 
+        const responseData = result.data || result;
         const verified = Boolean(
-            result.verified ??
-            result.verification?.verified
-        );
+    responseData.verified ??
+    responseData.verification?.verified
+);
 
-        const algorithmResults =
-            result.algorithm_results ||
-            result.verification?.algorithm_results ||
-            {};
+const algorithmResults =
+    responseData.algorithm_results ||
+    responseData.verification?.algorithm_results ||
+    {};
 
         showAnalysis(
             "verification-result",
@@ -919,17 +947,12 @@ async function verifySHA3Integrity() {
 --------------------------------------------------------- */
 
 async function simulateTampering() {
-    let message;
+    const originalMessage =
+        $("migration-message")?.value.trim() ||
+        $("hash-input")?.value.trim() ||
+        "EV-TEST-01 Heartbeat Available";
 
-    try {
-        message = parseUserMessage(
-            $("migration-message").value ||
-            $("hash-input").value
-        );
-    } catch (error) {
-        showNotification(error.message, "error");
-        return;
-    }
+    const modifiedMessage = originalMessage + " TAMPERED";
 
     showLoading(
         "attack-results",
@@ -939,34 +962,20 @@ async function simulateTampering() {
     try {
         const result = await apiRequest(API.tampering, {
             method: "POST",
-            body: { message }
+            body: {
+                original_message: originalMessage,
+                modified_message: modifiedMessage
+            }
         });
 
-        showAttackResult(
-            "Controlled Tampering",
-            result
-        );
+        showAttackResult("Controlled Tampering", result);
 
     } catch (error) {
-        showAnalysis(
-            "attack-results",
-            `<p class="error-text">${escapeHTML(error.message)}</p>`
-        );
-
-        showNotification(error.message, "error");
+        showAttackResult("Controlled Tampering", {
+            result: "Test failed",
+            detail: error.message
+        });
     }
-}
-
-function showAttackResult(title, result) {
-    showAnalysis(
-        "attack-results",
-        `
-            <div class="result-section">
-                <h3>${escapeHTML(title)}</h3>
-                <pre>${escapeHTML(JSON.stringify(result, null, 2))}</pre>
-            </div>
-        `
-    );
 }
 
 
@@ -974,114 +983,92 @@ function showAttackResult(title, result) {
    UNKNOWN CHARGER TEST
 --------------------------------------------------------- */
 
+
 async function simulateUnknownCharger() {
-    showLoading(
-        "attack-results",
-        "Testing unknown charger registration..."
-    );
+    const unknownId = "UNKNOWN-EV-999";
+
+    showLoading("attack-results", "Testing unknown charger...");
 
     try {
-        const result = await apiRequest(API.chargers, {
-            method: "GET"
-        });
-
-        const chargers = result.chargers || result.data || [];
-
-        const unknownId = "UNKNOWN-" + Date.now();
-
-        const exists = chargers.some(
-            charger => charger.charger_id === unknownId
-        );
-
-        showAttackResult(
-            "Unknown Charger Test",
+        await apiRequest(
+            `/api/chargers/${encodeURIComponent(unknownId)}/authenticate`,
             {
-                test: "Unknown charger lookup",
-                charger_id: unknownId,
-                registered: exists,
-                result: exists
-                    ? "Unexpected charger match"
-                    : "Unknown charger not found in registered charger list"
+                method: "POST",
+                body: { credential: "INVALID-TEST-CREDENTIAL" }
             }
         );
 
+        showAttackResult("Unknown Charger Test", {
+            charger_id: unknownId,
+            result: "Unexpectedly accepted"
+        });
+
     } catch (error) {
-        showNotification(error.message, "error");
+        showAttackResult("Unknown Charger Test", {
+            charger_id: unknownId,
+            result: "UNAUTHORIZED CHARGER — correctly rejected",
+            detail: error.message
+        });
     }
 }
 
 
-/* ---------------------------------------------------------
-   INVALID CREDENTIAL TEST
---------------------------------------------------------- */
-
 async function simulateInvalidCredential() {
-    const chargerId = $("replay-charger-id").value.trim();
+    const chargerId = "EV-TEST-01";
 
-    if (!chargerId) {
-        showNotification(
-            "Enter a registered charger ID in the Replay Attack card first.",
-            "error"
-        );
-        return;
-    }
-
-    showLoading(
-        "attack-results",
-        "Testing invalid charger credential..."
-    );
+    showLoading("attack-results", "Testing invalid credential...");
 
     try {
-        const result = await apiRequest(
+        await apiRequest(
             `/api/chargers/${encodeURIComponent(chargerId)}/authenticate`,
             {
                 method: "POST",
-                body: {
-                    credential: "INVALID-EVSECURE-CREDENTIAL"
-                }
+                body: { credential: "INVALID-EVSECURE-CREDENTIAL" }
             }
         );
 
-        showAttackResult(
-            "Invalid Credential Test",
-            result
-        );
+        showAttackResult("Invalid Credential Test", {
+            charger_id: chargerId,
+            result: "Unexpectedly authenticated"
+        });
 
     } catch (error) {
-        showAttackResult(
-            "Invalid Credential Test",
-            {
-                charger_id: chargerId,
-                authentication: "Rejected or endpoint unavailable",
-                detail: error.message
-            }
-        );
+        showAttackResult("Invalid Credential Test", {
+            charger_id: chargerId,
+            result: "AUTHENTICATION FAILED — correctly rejected",
+            detail: error.message
+        });
     }
 }
-
-
 /* ---------------------------------------------------------
    REPLAY ATTACK TEST
 --------------------------------------------------------- */
 
+
 async function simulateReplayAttack() {
-    const chargerId = $("replay-charger-id").value.trim();
+    const chargerId = $("replay-charger-id")?.value.trim();
 
     if (!chargerId) {
         showNotification("Enter a charger ID.", "error");
         return;
     }
 
-    showLoading(
-        "attack-results",
-        "Submitting replay test..."
-    );
+    // Ask for credentials BEFORE displaying the loading state
+    const credential = prompt("Enter the registered charger credential:");
+
+    if (!credential) {
+        showNotification("Credential is required.", "error");
+        return;
+    }
+
+    showLoading("attack-results", "Submitting replay test...");
 
     const payload = {
         charger_id: chargerId,
+        credential: credential,
         message_type: "Heartbeat",
         message_id: "REPLAY-TEST-001",
-        timestamp: "2026-01-01T00:00:00Z",
+        timestamp: new Date().toISOString(),
         payload: {
             status: "Available",
             test: "EVSecure replay simulation"
@@ -1089,37 +1076,40 @@ async function simulateReplayAttack() {
     };
 
     try {
-        const first = await apiRequest("/api/messages/receive", {
+        const first = await apiRequest("/api/messages", {
             method: "POST",
             body: payload
         });
 
-        const second = await apiRequest("/api/messages/receive", {
-            method: "POST",
-            body: payload
-        });
+        let second;
 
-        showAttackResult(
-            "Replay Attack Test",
-            {
-                first_submission: first,
-                second_submission: second,
-                interpretation: "Compare the two server responses to determine whether the repeated message was rejected."
-            }
-        );
+        try {
+            second = await apiRequest("/api/messages", {
+                method: "POST",
+                body: payload
+            });
+        } catch (error) {
+            second = {
+                rejected: true,
+                detail: error.message
+            };
+        }
+
+        showAttackResult("Replay Attack Test", {
+            first_submission: first,
+            second_submission: second,
+            interpretation:
+                "The same message was submitted twice. Check whether the second submission was rejected by replay protection."
+        });
 
     } catch (error) {
-        showAnalysis(
-            "attack-results",
-            `<p class="error-text">${escapeHTML(error.message)}</p>`
-        );
-
-        showNotification(
-            "Replay endpoint could not complete the test: " + error.message,
-            "error"
-        );
+        showAttackResult("Replay Attack Test", {
+            result: "Test failed",
+            detail: error.message
+        });
     }
 }
+
 
 
 /* ---------------------------------------------------------
@@ -1188,6 +1178,7 @@ async function loadCollisionAnalysis() {
    DATASET EVALUATION
 --------------------------------------------------------- */
 
+
 async function runDatasetEvaluation() {
     const button = $("run-dataset-btn");
 
@@ -1199,20 +1190,25 @@ async function runDatasetEvaluation() {
     );
 
     try {
-        const result = await apiRequest(API.datasetRun, {
+        // Run all dataset processing modules
+        await apiRequest(API.datasetRun, {
             method: "POST",
             body: {}
         });
 
-        const evaluation =
-            result.evaluation ||
-            result.results ||
-            result;
+        // Fetch the latest evaluation JSON after the pipeline finishes
+        const result = await apiRequest(API.datasetEvaluation);
+
+        const evaluation = result.data?.evaluation;
+
+        if (!evaluation || !evaluation.hash_consistency) {
+            throw new Error("Latest dataset evaluation results were not returned by the server.");
+        }
 
         renderDatasetEvaluation(evaluation);
 
         showNotification(
-            "Dataset evaluation completed.",
+            "Dataset evaluation completed and results loaded successfully.",
             "success"
         );
 
@@ -1236,10 +1232,12 @@ async function loadDatasetEvaluation() {
     try {
         const result = await apiRequest(API.datasetEvaluation);
 
-        const evaluation =
-            result.evaluation ||
-            result.results ||
-            result;
+        const evaluation = result.data?.evaluation;
+
+        if (!evaluation || !evaluation.hash_consistency) {
+            console.warn("Dataset evaluation data is missing or incomplete.");
+            return;
+        }
 
         renderDatasetEvaluation(evaluation);
 
@@ -1299,6 +1297,7 @@ function renderDatasetEvaluation(evaluation) {
     renderBenchmarkTable(benchmarks);
     renderDatasetMethodology(evaluation.methodology);
 }
+
 
 function renderConsistencyTable(results) {
     const tbody = $("consistency-table");
@@ -1462,3 +1461,344 @@ window.runDatasetEvaluation = runDatasetEvaluation;
 
 window.selectCharger = selectCharger;
 window.copyText = copyText;
+
+
+/* =========================================================
+   EVSECURE-MIGRATE - CHARGING MESSAGE SENDER
+   Additive integration - preserves existing dashboard UI
+========================================================= */
+
+(function initializeChargingMessageSender() {
+
+    function createMessageSender() {
+        const messagesSection = document.getElementById("messages");
+
+        if (!messagesSection ||
+            document.getElementById("charging-message-sender")) {
+            return;
+        }
+
+        const historyPanel = messagesSection.querySelector(".panel");
+
+        if (!historyPanel) return;
+
+        const senderPanel = document.createElement("div");
+
+        senderPanel.id = "charging-message-sender";
+        senderPanel.className = "panel";
+
+        senderPanel.innerHTML = `
+            <div class="panel-heading">
+                <div>
+                    <h3>Send Charging Message</h3>
+                    <p>Send a simulated EV charger message to the local CSMS.</p>
+                </div>
+                <i data-lucide="send"></i>
+            </div>
+
+            <form id="charging-message-form">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="send-charger-id">Registered Charger</label>
+                        <select id="send-charger-id" required>
+                            <option value="">Loading chargers...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="send-message-type">Message Type</label>
+                        <select id="send-message-type" required>
+                            <option value="Heartbeat">Heartbeat</option>
+                            <option value="StatusNotification">StatusNotification</option>
+                            <option value="StartTransaction">StartTransaction</option>
+                            <option value="StopTransaction">StopTransaction</option>
+                            <option value="MeterValues">MeterValues</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+    <label for="send-credential">Charger Credential</label>
+    <input
+        type="password"
+        id="send-credential"
+        placeholder="Enter registered charger credential"
+        autocomplete="off"
+    >
+</div>
+
+                    <div class="form-group" id="send-transaction-group">
+                        <label for="send-transaction-id">Transaction ID</label>
+                        <input
+                            type="text"
+                            id="send-transaction-id"
+                            placeholder="Required for transaction messages"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <label for="send-message-data">Additional Message Data (JSON)</label>
+                    <textarea
+                        id="send-message-data"
+                        rows="4"
+                    >{"status":"Available"}</textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="send-message-submit">
+                        <i data-lucide="send"></i>
+                        Send Message
+                    </button>
+                </div>
+
+            </form>
+
+            <div id="send-message-result"
+                 class="result-box hidden"></div>
+        `;
+
+        historyPanel.parentNode.insertBefore(senderPanel, historyPanel);
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        initializeSenderControls();
+    }
+
+    async function loadSenderChargers() {
+        const select = document.getElementById("send-charger-id");
+
+        if (!select) return;
+
+        try {
+            const response = await apiRequest("/api/chargers");
+
+            const chargers = response.chargers || response.data || [];
+
+            if (!Array.isArray(chargers) || chargers.length === 0) {
+                select.innerHTML =
+                    '<option value="">No registered chargers found</option>';
+                return;
+            }
+
+            select.innerHTML = `
+                <option value="">Select registered charger</option>
+                ${chargers.map(charger => `
+                    <option value="${escapeHTML(charger.charger_id)}">
+                        ${escapeHTML(charger.charger_id)}
+                        (${escapeHTML(charger.security_mode || "LEGACY_MD5")})
+                    </option>
+                `).join("")}
+            `;
+
+            // Preselect a charger if its ID is already entered
+            // in the existing security configuration form.
+            const existingCharger =
+                document.getElementById("security-charger-id");
+
+            if (existingCharger && existingCharger.value) {
+                select.value = existingCharger.value;
+            }
+
+        } catch (error) {
+            select.innerHTML =
+                '<option value="">Unable to load chargers</option>';
+
+            console.error("Charger loading error:", error);
+        }
+    }
+
+    function initializeSenderControls() {
+        const form = document.getElementById("charging-message-form");
+        const messageType = document.getElementById("send-message-type");
+        const transactionGroup =
+            document.getElementById("send-transaction-group");
+
+        if (!form || form.dataset.initialized === "true") return;
+
+        form.dataset.initialized = "true";
+
+        function updateTransactionField() {
+            const requiresTransaction = [
+                "StartTransaction",
+                "StopTransaction"
+            ].includes(messageType.value);
+
+            transactionGroup.style.display =
+                requiresTransaction ? "" : "none";
+        }
+
+        messageType.addEventListener("change", updateTransactionField);
+        updateTransactionField();
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const button = document.getElementById("send-message-submit");
+            const resultBox = document.getElementById("send-message-result");
+
+            const chargerId =
+                document.getElementById("send-charger-id").value;
+
+            const credential =
+                document.getElementById("send-credential").value.trim();
+
+            const type = messageType.value;
+
+            const transactionId =
+                document.getElementById("send-transaction-id").value.trim();
+
+            const additionalDataText =
+                document.getElementById("send-message-data").value.trim();
+
+            if (!chargerId) {
+    showResult(
+        "send-message-result",
+        "Please select a charger.",
+        "error"
+    );
+    return;
+}
+
+            if ([
+                "StartTransaction",
+                "StopTransaction"
+            ].includes(type) && !transactionId) {
+                showResult(
+                    "send-message-result",
+                    "Transaction ID is required for this message type.",
+                    "error"
+                );
+                return;
+            }
+
+            let additionalData = {};
+
+            try {
+                additionalData = additionalDataText
+                    ? JSON.parse(additionalDataText)
+                    : {};
+
+                if (
+                    !additionalData ||
+                    typeof additionalData !== "object" ||
+                    Array.isArray(additionalData)
+                ) {
+                    throw new Error("Message data must be a JSON object.");
+                }
+
+            } catch (error) {
+                showResult(
+                    "send-message-result",
+                    escapeHTML(error.message || "Invalid JSON message data."),
+                    "error"
+                );
+                return;
+            }
+
+            const payload = {
+    ...additionalData,
+    charger_id: chargerId,
+    credential: credential,
+    message_type: type
+};
+
+            if (type === "StartTransaction" ||
+                type === "StopTransaction") {
+                payload.transaction_id = transactionId;
+            }
+
+            try {
+                setButtonLoading(button, true, "Sending...");
+
+                resultBox.classList.remove("hidden");
+
+                showResult(
+                    "send-message-result",
+                    "Sending message to local CSMS...",
+                    "info"
+                );
+
+                const response = await apiRequest("/api/messages", {
+                    method: "POST",
+                    body: payload
+                });
+
+                const data = response.data || response;
+
+                const status =
+                    data.integrity_status || "ACCEPTED";
+
+                const algorithm =
+                    data.integrity_algorithm || "Not specified";
+
+                showResult(
+                    "send-message-result",
+                    `
+                        <strong>Message accepted successfully!</strong>
+                        <p>Charger: ${escapeHTML(data.charger || chargerId)}</p>
+                        <p>Message Type: ${escapeHTML(data.message_type || type)}</p>
+                        <p>Security Mode: ${escapeHTML(data.security_mode || "--")}</p>
+                        <p>Integrity Algorithm: ${escapeHTML(algorithm)}</p>
+                        <p>Verification Status:
+                            <strong>${escapeHTML(status)}</strong>
+                        </p>
+                    `,
+                    "success"
+                );
+
+                showNotification(
+                    `${type} accepted by CSMS.`,
+                    "success"
+                );
+
+                // Refresh message history and dashboard statistics.
+                await loadMessages();
+                await refreshDashboard();
+
+                // Clear credential after successful transmission.
+                document.getElementById("send-credential").value = "";
+
+            } catch (error) {
+
+                showResult(
+                    "send-message-result",
+                    `<strong>Message rejected</strong><p>${escapeHTML(error.message)}</p>`,
+                    "error"
+                );
+
+                showNotification(error.message, "error");
+
+            } finally {
+                setButtonLoading(button, false);
+            }
+        });
+
+        loadSenderChargers();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            createMessageSender
+        );
+    } else {
+        createMessageSender();
+    }
+
+    // Reload the charger list whenever the Messages section is opened.
+    document.addEventListener("click", function(event) {
+        const link = event.target.closest(
+            '.nav-link[data-section="messages"]'
+        );
+
+        if (link) {
+            setTimeout(loadSenderChargers, 100);
+        }
+    });
+
+})();

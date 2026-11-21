@@ -1,6 +1,8 @@
+
 import sqlite3
 import hashlib
 import secrets
+import json
 
 from pathlib import Path
 from datetime import datetime, timezone
@@ -46,118 +48,145 @@ def initialize_database():
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chargers (
-            charger_id TEXT PRIMARY KEY,
-            location TEXT,
-            connector_count INTEGER DEFAULT 1,
-            protocol TEXT DEFAULT 'OCPP 1.6',
-            security_mode TEXT DEFAULT 'LEGACY_MD5',
-            credential_hash TEXT,
-            created_at TEXT
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            transaction_id TEXT PRIMARY KEY,
-            charger_id TEXT,
-            energy_kwh REAL,
-            status TEXT,
-            created_at TEXT,
-            FOREIGN KEY (charger_id)
-                REFERENCES chargers(charger_id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            charger_id TEXT,
-            message_type TEXT,
-            payload TEXT,
-            hashes TEXT,
-            verification_status TEXT,
-            created_at TEXT,
-            FOREIGN KEY (charger_id)
-                REFERENCES chargers(charger_id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS security_events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            charger_id TEXT,
-            event_type TEXT,
-            description TEXT,
-            severity TEXT DEFAULT 'INFO',
-            created_at TEXT
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS message_replays (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            charger_id TEXT NOT NULL,
-            message_type TEXT,
-            message_fingerprint TEXT NOT NULL,
-            created_at TEXT,
-            UNIQUE(charger_id, message_fingerprint)
-        )
-    """)
-
-    # --------------------------------------------------
-    # HANDLE EXISTING DATABASE SCHEMAS
-    # --------------------------------------------------
-
-    # CREATE TABLE IF NOT EXISTS does not add new columns
-    # to tables that already exist. These checks handle that.
-
-    existing_columns = {
-        row["name"]
-        for row in cursor.execute(
-            "PRAGMA table_info(chargers)"
-        ).fetchall()
-    }
-
-    charger_columns = {
-        "location": "TEXT",
-        "connector_count": "INTEGER DEFAULT 1",
-        "protocol": "TEXT DEFAULT 'OCPP 1.6'",
-        "security_mode": "TEXT DEFAULT 'LEGACY_MD5'",
-        "credential_hash": "TEXT",
-        "created_at": "TEXT"
-    }
-
-    for column, definition in charger_columns.items():
-        if column not in existing_columns:
-            cursor.execute(
-                f"ALTER TABLE chargers ADD COLUMN {column} {definition}"
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS chargers (
+                charger_id TEXT PRIMARY KEY,
+                location TEXT,
+                connector_count INTEGER DEFAULT 1,
+                protocol TEXT DEFAULT 'OCPP 1.6',
+                security_mode TEXT DEFAULT 'LEGACY_MD5',
+                credential_hash TEXT,
+                created_at TEXT
             )
+        """)
 
-    existing_message_columns = {
-        row["name"]
-        for row in cursor.execute(
-            "PRAGMA table_info(messages)"
-        ).fetchall()
-    }
-
-    message_columns = {
-        "message_type": "TEXT",
-        "payload": "TEXT",
-        "hashes": "TEXT",
-        "verification_status": "TEXT",
-        "created_at": "TEXT"
-    }
-
-    for column, definition in message_columns.items():
-        if column not in existing_message_columns:
-            cursor.execute(
-                f"ALTER TABLE messages ADD COLUMN {column} {definition}"
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS transactions (
+                transaction_id TEXT PRIMARY KEY,
+                charger_id TEXT,
+                energy_kwh REAL,
+                status TEXT,
+                created_at TEXT,
+                FOREIGN KEY (charger_id)
+                    REFERENCES chargers(charger_id)
             )
+        """)
 
-    connection.commit()
-    connection.close()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                charger_id TEXT,
+                message_type TEXT,
+                transaction_id TEXT,
+                payload TEXT,
+                hashes TEXT,
+                verification_status TEXT,
+                integrity_algorithm TEXT,
+                integrity_status TEXT,
+                created_at TEXT,
+                FOREIGN KEY (charger_id)
+                    REFERENCES chargers(charger_id)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS security_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                charger_id TEXT,
+                event_type TEXT,
+                description TEXT,
+                severity TEXT DEFAULT 'INFO',
+                created_at TEXT
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS message_replays (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                charger_id TEXT NOT NULL,
+                message_type TEXT,
+                message_fingerprint TEXT NOT NULL,
+                first_seen TEXT,
+                created_at TEXT,
+                UNIQUE(charger_id, message_fingerprint)
+            )
+        """)
+
+        # --------------------------------------------------
+        # HANDLE EXISTING DATABASE SCHEMAS
+        # --------------------------------------------------
+
+        existing_columns = {
+            row["name"]
+            for row in cursor.execute(
+                "PRAGMA table_info(chargers)"
+            ).fetchall()
+        }
+
+        charger_columns = {
+            "location": "TEXT",
+            "connector_count": "INTEGER DEFAULT 1",
+            "protocol": "TEXT DEFAULT 'OCPP 1.6'",
+            "security_mode": "TEXT DEFAULT 'LEGACY_MD5'",
+            "credential_hash": "TEXT",
+            "created_at": "TEXT"
+        }
+
+        for column, definition in charger_columns.items():
+            if column not in existing_columns:
+                cursor.execute(
+                    f"ALTER TABLE chargers ADD COLUMN {column} {definition}"
+                )
+
+        existing_message_columns = {
+            row["name"]
+            for row in cursor.execute(
+                "PRAGMA table_info(messages)"
+            ).fetchall()
+        }
+
+        message_columns = {
+            "message_type": "TEXT",
+            "transaction_id": "TEXT",
+            "payload": "TEXT",
+            "hashes": "TEXT",
+            "verification_status": "TEXT",
+            "integrity_algorithm": "TEXT",
+            "integrity_status": "TEXT",
+            "created_at": "TEXT"
+        }
+
+        for column, definition in message_columns.items():
+            if column not in existing_message_columns:
+                cursor.execute(
+                    f"ALTER TABLE messages ADD COLUMN {column} {definition}"
+                )
+
+        existing_replay_columns = {
+            row["name"]
+            for row in cursor.execute(
+                "PRAGMA table_info(message_replays)"
+            ).fetchall()
+        }
+
+        replay_columns = {
+            "message_type": "TEXT",
+            "message_fingerprint": "TEXT",
+            "first_seen": "TEXT",
+            "created_at": "TEXT"
+        }
+
+        for column, definition in replay_columns.items():
+            if column not in existing_replay_columns:
+                cursor.execute(
+                    f"ALTER TABLE message_replays ADD COLUMN {column} {definition}"
+                )
+
+        connection.commit()
+
+    finally:
+        connection.close()
 
 
 # --------------------------------------------------
@@ -167,7 +196,6 @@ def initialize_database():
 def hash_credential(secret):
     """
     Hashes a charger credential using SHA-256.
-
     This is credential hashing, not message encryption.
     """
 
@@ -196,9 +224,8 @@ def register_charger(
 ):
     """
     Registers a new EV charging station.
-
     Returns the generated plaintext credential.
-    Only its SHA-256 hash is stored in the database.
+    Only its SHA-256 hash is stored.
     """
 
     credential = generate_charger_credential()
@@ -344,37 +371,93 @@ def update_security_mode(charger_id, security_mode):
 # TRANSACTION MANAGEMENT
 # --------------------------------------------------
 
+
 def save_transaction(
     transaction_id,
     charger_id,
-    energy_kwh,
-    status="COMPLETED"
+    energy_kwh=None,
+    status=None,
+    connector_id=None,
+    id_tag=None,
+    meter_start=None,
+    meter_stop=None,
+    started_at=None,
+    stopped_at=None
 ):
+    """
+    Create or update an EV charging transaction.
+
+    StartTransaction creates the transaction.
+    StopTransaction updates the existing transaction.
+    """
+
     connection = get_connection()
 
     try:
-        connection.execute("""
-            INSERT OR REPLACE INTO transactions (
-                transaction_id,
-                charger_id,
+        existing = connection.execute("""
+            SELECT *
+            FROM transactions
+            WHERE transaction_id = ?
+              AND charger_id = ?
+        """, (str(transaction_id), charger_id)).fetchone()
+
+        if existing:
+            connection.execute("""
+                UPDATE transactions
+                SET
+                    connector_id = COALESCE(?, connector_id),
+                    id_tag = COALESCE(?, id_tag),
+                    meter_start = COALESCE(?, meter_start),
+                    meter_stop = COALESCE(?, meter_stop),
+                    energy_kwh = COALESCE(?, energy_kwh),
+                    started_at = COALESCE(?, started_at),
+                    stopped_at = COALESCE(?, stopped_at)
+                WHERE transaction_id = ?
+                  AND charger_id = ?
+            """, (
+                connector_id,
+                id_tag,
+                meter_start,
+                meter_stop,
                 energy_kwh,
-                status,
-                created_at
-            )
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            str(transaction_id),
-            charger_id,
-            float(energy_kwh),
-            status,
-            get_current_time()
-        ))
+                started_at,
+                stopped_at,
+                str(transaction_id),
+                charger_id
+            ))
+
+        else:
+            connection.execute("""
+                INSERT INTO transactions (
+                    transaction_id,
+                    charger_id,
+                    connector_id,
+                    id_tag,
+                    meter_start,
+                    meter_stop,
+                    energy_kwh,
+                    started_at,
+                    stopped_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                str(transaction_id),
+                charger_id,
+                connector_id,
+                id_tag,
+                meter_start,
+                meter_stop,
+                energy_kwh,
+                started_at,
+                stopped_at
+            ))
 
         connection.commit()
         return True
 
     finally:
         connection.close()
+
 
 
 def get_transactions():
@@ -397,18 +480,20 @@ def get_transactions():
 # MESSAGE STORAGE
 # --------------------------------------------------
 
+
 def save_message(
     charger_id,
     message_type,
     payload,
     hashes=None,
-    verification_status="PENDING"
+    verification_status="PENDING",
+    transaction_id=None,
+    integrity_algorithm=None,
+    integrity_status=None
 ):
     """
-    Stores a received message and its hash information.
+    Store a received message and its integrity verification result.
     """
-
-    import json
 
     payload_json = (
         json.dumps(payload, sort_keys=True)
@@ -418,6 +503,9 @@ def save_message(
 
     hashes_json = json.dumps(hashes or {})
 
+    # Keep both status fields synchronized.
+    final_status = integrity_status or verification_status
+
     connection = get_connection()
 
     try:
@@ -425,27 +513,33 @@ def save_message(
             INSERT INTO messages (
                 charger_id,
                 message_type,
+                transaction_id,
                 payload,
                 hashes,
                 verification_status,
+                integrity_algorithm,
+                integrity_status,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             charger_id,
             message_type,
+            str(transaction_id) if transaction_id is not None else None,
             payload_json,
             hashes_json,
-            verification_status,
+            final_status,
+            integrity_algorithm,
+            final_status,
             get_current_time()
         ))
 
         connection.commit()
-
         return cursor.lastrowid
 
     finally:
         connection.close()
+
 
 
 def get_messages(limit=100):
@@ -530,16 +624,12 @@ def check_and_record_replay(
     payload
 ):
     """
-    Detects an exact repeated message payload.
+    Detects exact repeated message payloads.
 
     Returns:
-        False -> First time this payload was received.
-        True  -> Duplicate payload detected.
-
-    The fingerprint is stored persistently in SQLite.
+        False: First time this payload was received.
+        True: Duplicate payload detected.
     """
-
-    import json
 
     if isinstance(payload, (dict, list)):
         payload_string = json.dumps(
@@ -557,26 +647,35 @@ def check_and_record_replay(
     connection = get_connection()
 
     try:
+        current_time = get_current_time()
+
         connection.execute("""
             INSERT INTO message_replays (
                 charger_id,
                 message_type,
                 message_fingerprint,
+                first_seen,
                 created_at
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
         """, (
             charger_id,
             message_type,
             fingerprint,
-            get_current_time()
+            current_time,
+            current_time
         ))
 
         connection.commit()
         return False
 
-    except sqlite3.IntegrityError:
-        return True
+    except sqlite3.IntegrityError as error:
+        connection.rollback()
+
+        if "UNIQUE constraint failed" in str(error):
+            return True
+
+        raise
 
     finally:
         connection.close()
@@ -627,24 +726,24 @@ def get_database_statistics():
 # --------------------------------------------------
 
 initialize_database()
+
+
 def get_recent_messages(limit=100):
     """
     Retrieve the most recent messages stored in the database.
     """
+
     connection = get_connection()
 
     try:
         cursor = connection.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT *
             FROM messages
             ORDER BY id DESC
             LIMIT ?
-            """,
-            (limit,)
-        )
+        """, (int(limit),))
 
         rows = cursor.fetchall()
 
